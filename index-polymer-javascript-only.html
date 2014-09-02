@@ -1,0 +1,49 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <title>Javascript Only Polymer</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <script src="components/platform/platform.js"></script>
+    <link rel="import" href="testElement.html">
+</head>
+
+<body unresolved>
+    <script>
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        // use an observer to tell when polymer has updated the body tag
+        var target = document.body;
+        var samples = getParameterByName('samples') > 0 ?  getParameterByName('samples') : 1;
+
+        // create an observer instance
+        var observer = new MutationObserver(function(mutations) {
+          var benchEndTime = performance.now();
+          // capture bench time
+          var msg = samples + ' samples. rendered in: ' + (benchEndTime - benchStartTime) / 1000 + 's';
+          document.body.innerHTML = msg;
+        });
+
+        // configuration of the observer:
+        var config = { attributes: true, childList: false, characterData: false };
+
+        // pass in the target node, as well as the observer options
+        observer.observe(target, config);
+
+        for (i = 0; i < samples; i++) {
+            document.body.appendChild(document.createElement("test-element"));
+        }
+
+        var benchStartTime = performance.now();
+    </script>
+
+    </body>
+
+</html>

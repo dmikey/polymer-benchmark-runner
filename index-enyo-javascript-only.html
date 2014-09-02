@@ -1,0 +1,151 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <title>Javascript only Enyo</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <script src="../ca-polymer/components/platform/platform.js"></script>
+    <script src="enyo.js"></script>
+    <script src="benchmark.js"></script>
+
+    <script>
+
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    var _benchmark = function(scope){
+
+        //statics
+        var messages = {
+            setup: 'setting up test',
+            finish: 'test finished',
+            time: 'test runtime',
+            iteration: 'total iterations'
+        };
+
+        var logDiv = document.getElementById("message-output");
+        var testDiv = document.getElementById("test-area");
+
+        var log = function() {
+            console.log.apply(console, arguments);
+        };
+
+        //bench class
+        var baseBench = {
+            iterations: 1,
+            fire: function(fnStr){
+                if(this[fnStr]){ this[fnStr](); };
+            },
+            setup: function(){
+                this.fire('onSetup');
+                this.createContainer();
+                this.fire('onAfterSetup');
+                this.startTime = performance.now();
+            },
+            finish: function(){
+                if(this.onFinish){ this.onFinish(); };
+                this.endTime = performance.now();
+                //testDiv.innerHTML = '';
+            },
+            createContainer: function() {
+                this.container = document.createElement('div');
+                testDiv.appendChild(this.container);
+            },
+            getResults: function(){
+                return {
+                    'timeElapse' : this.endTime - this.startTime
+                }
+            },
+            run: function() {
+
+                //log(messages['setup'], this.name);
+                //log(messages['iteration'], this.iterations);
+                this.setup();
+                for (var i = 0; i < this.iterations; ++i) {
+                    this.runner();
+                }
+                this.finish();
+
+                //log(messages['finish']);
+                //log(messages['time'], this.getResults());
+                document.body.innerHTML = this.iterations + ' samples. rendered in: ' + this.getResults().timeElapse/1000 + 's';
+                //this.log(this.name, this.getResults());
+            },
+            logged: [],
+            log: function(){
+                this.logged.push(arguments);
+            }
+        }
+
+
+        var benches = {
+
+            enyoBench: function(){
+
+                var base = Object.create(baseBench);
+                base.name = 'enyo benchmark';
+                base.components = [];
+
+                base.createContainer = function(){
+                    this.container = document.getElementById('test-area');
+                };
+
+                base.runner = function() {
+                    new enyo.Control({content:'hello'}).renderInto(this.container);
+                };
+
+                base.onFinish = function (){
+                    //this.container.createComponents(this.components);
+                    //this.container.renderInto(testDiv);
+                }
+
+                return base;
+            }
+        };
+
+        var sample = [
+             getParameterByName('samples') || 1
+        ];
+
+        var run = function(bench, iterations){
+
+                //create new polymerTester
+                var _bench = new bench;
+                _bench.iterations = iterations;
+                _bench.run();
+                delete _bench;
+
+        }
+
+        for (var key in benches) {
+            for (var i = 0; i < sample.length; ++i) {
+                run(benches[key], sample[i]);
+            }
+        }
+
+
+    };
+
+    var _readyStateCheckInterval = window.setInterval(function () {
+        //attach a ready state listener to fire off our first updates when the dom is available
+        if (document.readyState === 'complete') {
+            window.clearInterval(_readyStateCheckInterval);
+             _benchmark();
+        }
+    }, 10);
+
+    </script>
+
+</head>
+
+<body>
+    <div id="test-area"></div>
+</body>
+
+</html>

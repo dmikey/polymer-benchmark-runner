@@ -1,0 +1,248 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <title>polymer widgets</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <script src="../ca-polymer/components/platform/platform.js"></script>
+    <script src="enyo.js"></script>
+    <script src="benchmark.js"></script>
+    <style>
+        #test-area { display:none;}
+    </style>
+
+    <script>
+
+    var _benchmark = function(scope){
+
+        //statics
+        var messages = {
+            setup: 'setting up test',
+            finish: 'test finished',
+            time: 'test runtime',
+            iteration: 'total iterations'
+        };
+
+        var logDiv = document.getElementById("message-output");
+        var testDiv = document.getElementById("test-area");
+
+        var log = function() {
+            console.log.apply(console, arguments);
+        };
+
+        //bench class
+        var baseBench = {
+            iterations: 1,
+            fire: function(fnStr){
+                if(this[fnStr]){ this[fnStr](); };
+            },
+            setup: function(){
+                this.fire('onSetup');
+                this.createContainer();
+                this.fire('onAfterSetup');
+                this.startTime = performance.now();
+            },
+            finish: function(){
+                if(this.onFinish){ this.onFinish(); };
+                this.endTime = performance.now();
+                testDiv.innerHTML = '';
+            },
+            createContainer: function() {
+                this.container = document.createElement('div');
+                testDiv.appendChild(this.container);
+            },
+            getResults: function(){
+                return {
+                    'timeElapse' : this.endTime - this.startTime
+                }
+            },
+            run: function() {
+
+                log(messages['setup'], this.name);
+                log(messages['iteration'], this.iterations);
+                this.setup();
+                for (var i = 0; i < this.iterations; ++i) {
+                    this.runner();
+                }
+                this.finish();
+
+                log(messages['finish']);
+                log(messages['time'], this.getResults());
+
+                this.log(this.name, this.getResults());
+            },
+            logged: [],
+            log: function(){
+                this.logged.push(arguments);
+            }
+        }
+
+
+        var benches = {
+
+//            polymerBench : function(){
+//
+//                var base = Object.create(baseBench);
+//                base.name = 'polymer benchmark';
+//                base.runner = function() {
+//                    this.container.appendChild(document.createElement("x-foo")).textContent = "foo";
+//                };
+//                return base;
+//            },
+
+//            divBench: function(){
+//
+//                var base = Object.create(baseBench);
+//                base.name = 'native div benchmark';
+//                base.runner = function() {
+//                    this.container.appendChild(document.createElement('div')).textContent = "foo";
+//                };
+//                return base;
+//            },
+
+            enyoBench: function(){
+
+                var base = Object.create(baseBench);
+                base.name = 'enyo benchmark';
+                base.components = [];
+
+                base.createContainer = function(){
+                    //this.container = enyo.create({});
+                    this.container = document.getElementById('test-area');
+                };
+
+                base.runner = function() {
+                    new enyo.Control({content:'hello'}).renderInto(this.container);
+                    //enyo.create({content:"foo"}).renderInto(this.container);
+                };
+
+                base.onFinish = function (){
+                    //this.container.createComponents(this.components);
+                    //this.container.renderInto(testDiv);
+                }
+
+                return base;
+            }
+        };
+
+        var sample = [
+             10000
+//            ,10000
+//            ,20000
+//            ,50000
+//            ,80000
+//            ,100000
+//            ,120000
+//            ,140000
+//            ,150000
+//            ,175000
+//            ,200000
+        ];
+
+        var run = function(bench, iterations){
+
+                //create new polymerTester
+                var _bench = new bench;
+                _bench.iterations = iterations;
+                _bench.run();
+                delete _bench;
+
+        }
+
+        for (var key in benches) {
+            for (var i = 0; i < sample.length; ++i) {
+                run(benches[key], sample[i]);
+            }
+        }
+
+
+    };
+
+    var setupEventHooks = function() {
+        var button = document.getElementById("run-button");
+        button.addEventListener("click", function() {
+                var _button = this;
+
+                _button.disabled = true;
+
+                setTimeout(function(){
+                    _benchmark();
+                    _button.disabled = false;
+                }, 0 );
+
+        }, false);
+    }
+
+    var _readyStateCheckInterval = window.setInterval(function () {
+        //attach a ready state listener to fire off our first updates when the dom is available
+        if (document.readyState === 'complete') {
+            window.clearInterval(_readyStateCheckInterval);
+            setupEventHooks();
+        }
+    }, 10);
+
+    </script>
+
+    <style>
+    body{
+        margin:0;
+        font-family: sans-serif;
+    }
+
+    header
+    {
+        position: relative;
+        height: 800px;
+        min-height: 500px;
+        width: 100%;
+        background: #ddd;
+        background-size: cover !important;
+        -webkit-background-size: cover !important;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    header .banner {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 auto;
+        width: 85%;
+        padding-bottom: 30px;
+    }
+
+    header h1 {
+        font: 90px/1.1em 'opensans-bold', sans-serif;
+        color: #fff;
+        letter-spacing: -2px;
+        margin: 0 auto 18px auto;
+        text-shadow: 0px 1px 3px rgba(0, 0, 0, .8);
+    }
+
+    #run-button {
+        background: transparent;
+        border-radius: 6px;
+        font-size: 2em;
+        color: #fff;
+        text-shadow: 1px 1px 1px #000;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="test-area"></div>
+
+    <header>
+        <div class="banner" role="heading">
+          <input id="run-button" type="button" value="Run Tests" />
+          <h1 id="message"></h1>
+        </div>
+    </header>
+
+    <div id="message-output">
+
+    </div>
+
+</body>
+
+</html>
