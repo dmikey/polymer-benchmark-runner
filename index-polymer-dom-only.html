@@ -25,8 +25,9 @@
 
         // create an observer instance
         var observer = new MutationObserver(function(mutations) {
-          var samples = document.getElementsByTagName('test-element').length;
           var benchEndTime = performance.now();
+          var samples = document.getElementsByTagName('test-element').length;
+
           // capture bench time
           var msg = samples + ' samples. rendered in: ' + (benchEndTime - benchStartTime) / 1000 + 's';
           document.body.innerHTML = msg;
