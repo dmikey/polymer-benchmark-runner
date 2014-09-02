@@ -19,12 +19,7 @@
             return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
         }
 
-        // use an observer to tell when polymer has updated the body tag
-        var target = document.body;
-
-
-        // create an observer instance
-        var observer = new MutationObserver(function(mutations) {
+        window.addEventListener('polymer-ready', function(e) {
           var benchEndTime = performance.now();
           var samples = document.getElementsByTagName('test-element').length;
 
@@ -32,12 +27,6 @@
           var msg = samples + ' samples. rendered in: ' + (benchEndTime - benchStartTime) / 1000 + 's';
           document.body.innerHTML = msg;
         });
-
-        // configuration of the observer:
-        var config = { attributes: true, childList: false, characterData: false };
-
-        // pass in the target node, as well as the observer options
-        observer.observe(target, config);
 
         var benchStartTime = performance.now();
     </script>

@@ -23,25 +23,19 @@
         var target = document.body;
         var samples = getParameterByName('samples') > 0 ?  getParameterByName('samples') : 1;
 
-        // create an observer instance
-        var observer = new MutationObserver(function(mutations) {
+        window.addEventListener('polymer-ready', function(e) {
           var benchEndTime = performance.now();
           // capture bench time
           var msg = samples + ' samples. rendered in: ' + (benchEndTime - benchStartTime) / 1000 + 's';
           document.body.innerHTML = msg;
         });
 
-        // configuration of the observer:
-        var config = { attributes: true, childList: false, characterData: false };
-
-        // pass in the target node, as well as the observer options
-        observer.observe(target, config);
+        var benchStartTime = performance.now();
 
         for (i = 0; i < samples; i++) {
             document.body.appendChild(document.createElement("test-element"));
         }
 
-        var benchStartTime = performance.now();
     </script>
 
     </body>
