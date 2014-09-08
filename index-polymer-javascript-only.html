@@ -27,7 +27,8 @@
           var benchEndTime = performance.now();
           // capture bench time
           var msg = samples + ' samples. rendered in: ' + (benchEndTime - benchStartTime) / 1000 + 's';
-          document.body.innerHTML = msg;
+          //document.body.innerHTML = msg;
+            console.log(msg);
         });
 
         var benchStartTime = performance.now();
